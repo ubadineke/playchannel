@@ -18,7 +18,7 @@
 //! Note: This opt-in solution is for demonstration purposes only.
 //!
 //! ```text
-//! 
+//!
 //! PayTube "VM"
 //!
 //!    Bob          Alice        Bob          Alice          Will
@@ -53,6 +53,9 @@
 //! `TransactionProcessingCallback` interface, and provides it to the
 //! `TransactionBatchProcessor` to process PayTube transactions.
 
+mod game_channel;
+mod game_traits;
+mod games;
 mod loader;
 mod processor;
 mod settler;
