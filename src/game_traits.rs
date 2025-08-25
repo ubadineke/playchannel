@@ -9,7 +9,7 @@
 //Game Engine Registry
 //Game State Manager
 
-use solana_sdk::{pubkey::Pubkey, signature::Signature, stake::config};
+use solana_sdk::{pubkey::Pubkey, signature::Signature};
 use std::collections::HashMap;
 
 /// Unique identifier for a game instance
@@ -24,6 +24,7 @@ pub type GameTypeId = String;
 /// Move identifier within a game
 pub type MoveId = u64;
 
+#[derive(Debug, Clone)]
 pub enum GameActionResult {
     /// Action was successful
     Success,
@@ -102,7 +103,7 @@ pub struct GameState {
     pub winner: Option<PlayerId>,
     pub created_at: u64,
     pub last_updated: u64,
-    /// Wagering state (optional - games can choose to support wagering)
+    ///// Wagering state (optional - games can choose to support wagering)
     pub wagering_state: Option<WageringState>,
     pub last_activity: u64,
 }
@@ -356,6 +357,11 @@ impl GameStateManager {
         Ok(validation_result)
     }
 
+    // make my move
+
+    // receive peer move
+    // pub fn make_my_move(&mut self, game_instance_id: &GameInstanceId, move_data: )
+
     pub fn commit_stake(
         &mut self,
         game_instance_id: &GameInstanceId,
@@ -422,5 +428,8 @@ impl GameStateManager {
     /// Get registry for external access
     pub fn get_registry(&self) -> &GameEngineRegistry {
         &self.registry
+    }
+    pub fn get_mut_registry(&mut self) -> &mut GameEngineRegistry {
+        &mut self.registry
     }
 }

@@ -13,6 +13,8 @@ solana-svm = "2.0.0"
 solana-system-program = "2.0.0"
 spl-associated-token-account = "4.0.0"
 spl-token = "6.0.0"
+borsh = "0.10.0"
+borsh-derive = "0.10.0" 
 
 [dev-dependencies]
 solana-logger = "2.0.0"

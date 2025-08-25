@@ -11,11 +11,11 @@ use crate::game_traits::*;
 /// Game state channel that extends Paytube for gaming
 pub struct PlayChannel {
     /// Game state manager
-    game_manager: GameStateManager,
+    pub game_manager: GameStateManager,
     /// RPC client for Solana
-    rpc_client: RpcClient,
+    pub rpc_client: RpcClient,
     /// Signers for settlement
-    keys: Vec<Keypair>,
+    pub keys: Vec<Keypair>,
 }
 
 impl PlayChannel {
@@ -25,9 +25,9 @@ impl PlayChannel {
         let game_manager = GameStateManager::new(registry);
 
         Self {
+            keys,
             game_manager,
             rpc_client,
-            keys,
         }
     }
 

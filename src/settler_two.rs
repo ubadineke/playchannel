@@ -11,7 +11,7 @@
 //! channel is about to close are needed to create the settlement transaction.
 
 use {
-    crate::transaction::PayTubeTransaction,
+    crate::{transaction::PayTubeTransaction, transaction_two::RpsTransaction},
     solana_client::rpc_client::RpcClient,
     solana_sdk::{
         instruction::Instruction as SolanaInstruction, pubkey::Pubkey, signature::Keypair,
@@ -41,13 +41,13 @@ struct LedgerKey {
 ///
 /// The value is stored as a signed `i128`, in order to include a sign but also
 /// provide enough room to store `u64::MAX`.
-struct Ledger {
+struct RPSLedger {
     ledger: HashMap<LedgerKey, i128>,
 }
 
-impl Ledger {
+impl RPSLedger {
     fn new(
-        paytube_transactions: &[PayTubeTransaction],
+        paytube_transactions: &[RpsTransaction],
         svm_output: LoadAndExecuteSanitizedTransactionsOutput,
     ) -> Self {
         let mut ledger: HashMap<LedgerKey, i128> = HashMap::new();
@@ -57,20 +57,23 @@ impl Ledger {
             .for_each(|(transaction, result)| {
                 // Only append to the ledger if the PayTube transaction was
                 // successful.
+                println!("{:?}", result);
                 if result.was_executed_successfully() {
-                    let mint = transaction.mint;
-                    let mut keys = [transaction.from, transaction.to];
-                    keys.sort();
-                    let amount = if keys.iter().position(|k| k.eq(&transaction.from)).unwrap() == 0
-                    {
-                        transaction.amount as i128
-                    } else {
-                        -(transaction.amount as i128)
-                    };
-                    *ledger.entry(LedgerKey { mint, keys }).or_default() += amount;
-                }
+                    //   let mint = transaction.mint;
+                    //   let mut keys = [transaction.from, transaction.to];
+                    //   keys.sort();
+                    //   let amount = if keys.iter().position(|k| k.eq(&transaction.from)).unwrap() == 0
+                    //   {
+                    //       transaction.amount as i128
+                    //   } else {
+                    //       -(transaction.amount as i128)
+                    //   };
+                    //   *ledger.entry(LedgerKey { mint, keys }).or_default() += amount;
 
-                println!("Yes")
+                    println!("Yes")
+                } else {
+                    println!("No")
+                }
             });
         Self { ledger }
     }
@@ -104,11 +107,11 @@ impl Ledger {
 }
 
 /// PayTube final transaction settler.
-pub struct PayTubeSettler<'a> {
+pub struct PlayChannelSettler<'a> {
     rpc_client: &'a RpcClient,
 }
 
-impl<'a> PayTubeSettler<'a> {
+impl<'a> PlayChannelSettler<'a> {
     pub fn new(rpc_client: &'a RpcClient) -> Self {
         Self { rpc_client }
     }
@@ -116,12 +119,12 @@ impl<'a> PayTubeSettler<'a> {
     /// Settle the payment channel results to the Solana blockchain.
     pub fn process_settle(
         &self,
-        paytube_transactions: &[PayTubeTransaction],
+        paytube_transactions: &[RpsTransaction],
         svm_output: LoadAndExecuteSanitizedTransactionsOutput,
         keys: &[Keypair],
     ) {
         // Build the ledger from the processed PayTube transactions.
-        let ledger = Ledger::new(paytube_transactions, svm_output);
+        let ledger = RPSLedger::new(paytube_transactions, svm_output);
 
         // Build the Solana instructions from the ledger.
         let instructions = ledger.generate_base_chain_instructions();

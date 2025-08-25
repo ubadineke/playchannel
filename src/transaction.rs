@@ -7,6 +7,7 @@
 //! case Solana.
 
 use {
+    crate::transaction_two::RpsTransaction,
     solana_sdk::{
         instruction::Instruction as SolanaInstruction,
         pubkey::Pubkey,
@@ -77,6 +78,15 @@ pub fn create_svm_transactions(
     paytube_transactions: &[PayTubeTransaction],
 ) -> Vec<SolanaSanitizedTransaction> {
     paytube_transactions
+        .iter()
+        .map(SolanaSanitizedTransaction::from)
+        .collect()
+}
+
+pub fn create_svm_transactions2(
+    rps_transactions: &[RpsTransaction],
+) -> Vec<SolanaSanitizedTransaction> {
+    rps_transactions
         .iter()
         .map(SolanaSanitizedTransaction::from)
         .collect()

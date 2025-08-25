@@ -54,16 +54,20 @@
 //! `TransactionBatchProcessor` to process PayTube transactions.
 
 mod game_channel;
-mod game_traits;
-mod games;
+pub mod game_traits;
+pub mod games;
 mod loader;
 mod processor;
 mod settler;
+mod settler_two;
 pub mod transaction;
+pub mod transaction_two;
 
+// pub use game_channel::PlayChannel;
 use {
     crate::{
-        loader::PayTubeAccountLoader, settler::PayTubeSettler, transaction::PayTubeTransaction,
+        loader::PayTubeAccountLoader, settler::PayTubeSettler, settler_two::PlayChannelSettler,
+        transaction::PayTubeTransaction,
     },
     processor::{create_transaction_batch_processor, get_transaction_check_results},
     solana_client::rpc_client::RpcClient,
@@ -76,7 +80,8 @@ use {
         TransactionProcessingConfig, TransactionProcessingEnvironment,
     },
     std::sync::Arc,
-    transaction::create_svm_transactions,
+    transaction::{create_svm_transactions, create_svm_transactions2},
+    transaction_two::RpsTransaction,
 };
 
 /// A PayTube channel instance.
@@ -147,10 +152,89 @@ impl PayTubeChannel {
             &processing_config,
         );
 
+        // println!("{:?}", results.loaded_transactions);
+
         // 3. Convert results into a final ledger using a `PayTubeSettler`.
         let settler = PayTubeSettler::new(&self.rpc_client);
 
         // 4. Submit to the Solana base chain.
         settler.process_settle(transactions, results, &self.keys);
+    }
+}
+
+pub struct PlayChannel {
+    /// Game state manager
+    // pub game_manager: GameStateManager,
+    /// RPC client for Solana
+    pub rpc_client: RpcClient,
+    /// Signers for settlement
+    pub keys: Vec<Keypair>,
+}
+
+impl PlayChannel {
+    /// Create a new game channel with registered game engines
+    pub fn new(keys: Vec<Keypair>, rpc_client: RpcClient) -> Self {
+        // let registry = GameEngineRegistry::new();
+        // let game_manager = GameStateManager::new(registry);
+
+        Self {
+            keys,
+            // game_manager,
+            rpc_client,
+        }
+    }
+
+    pub fn process_plays(&self, transactions: &[RpsTransaction]) {
+        // PayTube default configs.
+        let compute_budget = ComputeBudget::default();
+        let feature_set = FeatureSet::all_enabled();
+        let fee_structure = FeeStructure::default();
+        let lamports_per_signature = fee_structure.lamports_per_signature;
+        let rent_collector = RentCollector::default();
+
+        // PayTube loader/callback implementation.
+        let account_loader = PayTubeAccountLoader::new(&self.rpc_client);
+
+        // Solana SVM transaction batch processor.
+        let processor =
+            create_transaction_batch_processor(&account_loader, &feature_set, &compute_budget);
+
+        // The PayTube transaction processing runtime environment.
+        let processing_environment = TransactionProcessingEnvironment {
+            blockhash: Hash::default(),
+            epoch_total_stake: None,
+            epoch_vote_accounts: None,
+            feature_set: Arc::new(feature_set),
+            fee_structure: Some(&fee_structure),
+            lamports_per_signature,
+            rent_collector: Some(&rent_collector),
+        };
+
+        // The PayTube transaction processing config for Solana SVM.
+        let processing_config = TransactionProcessingConfig {
+            compute_budget: Some(compute_budget),
+            ..Default::default()
+        };
+
+        // 1. Convert to an SVM transaction batch.
+        let svm_transactions = create_svm_transactions2(transactions);
+
+        // println!("{:?}", svm_transactions);
+        // 2. Process transactions with the SVM API.
+        let results = processor.load_and_execute_sanitized_transactions(
+            &account_loader,
+            &svm_transactions,
+            get_transaction_check_results(svm_transactions.len(), lamports_per_signature),
+            &processing_environment,
+            &processing_config,
+        );
+
+        // println!("{:?}", results.loaded_transactions);
+        // 3. Convert results into a final ledger using a `PayTubeSettler`.
+        let settler = PlayChannelSettler::new(&self.rpc_client);
+
+        // 4. Submit to the Solana base chain.
+        settler.process_settle(transactions, results, &self.keys);
+        println!("After settling");
     }
 }
