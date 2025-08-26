@@ -29,14 +29,14 @@ fn test_native_sol() {
         (alice_pubkey, system_account(10_000_000)),
         (bob_pubkey, system_account(10_000_000)),
         (will_pubkey, system_account(10_000_000)),
-        (program_account(
-            program_id,
-            std::env::current_dir()
-                .unwrap()
-                .join("rock_paper_scissors.so")
-                .to_str()
-                .unwrap(),
-        )),
+        // (program_account(
+        //     program_id,
+        //     std::env::current_dir()
+        //         .unwrap()
+        //         .join("rock_paper_scissors.so")
+        //         .to_str()
+        //         .unwrap(),
+        // )),
     ];
 
     let context = TestValidatorContext::start_with_accounts(accounts);

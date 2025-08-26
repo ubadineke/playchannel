@@ -3,6 +3,7 @@ mod setup;
 use std::fs;
 
 use borsh::BorshSerialize;
+// use mollusk_svm::Mollusk;
 use paytube_svm::{
     game_traits::GameMove,
     games::{register_builtin_games, rock_paper_scissors::RPSChoice},
@@ -16,6 +17,9 @@ use solana_sdk::{
     signature::Keypair,
     signer::Signer,
 };
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 
 #[test]
 fn test_rps() {
@@ -47,23 +51,27 @@ fn test_rps() {
     let payer = context.payer.insecure_clone();
 
     let rpc_client = test_validator.get_rpc_client();
+    // let program_account = rpc_client.get_account(&program_id).unwrap();
+    // println!("Program owner: {}", program_account.owner);
+    // println!(
+    //     "Expected owner: {}",
+    //     solana_sdk::bpf_loader_upgradeable::id()
+    // );
 
-    match rpc_client.get_account(&program_id) {
-        Ok(account) => {
-            if account.executable {
-                println!("Program {} exists and is executable!", program_id);
-            } else {
-                println!("Account {} exists but is NOT executable", program_id);
-            }
-        }
-        Err(err) => {
-            println!("Program not found: {}", err);
-        }
-    }
+    // println!("Program account: {:?}", program_account);
 
-    let program_id: Pubkey = "B6iwgaDVFX7LXDMokCYT8Ya21gr2FbsUTBPFh2mcfxNa"
-        .parse()
-        .unwrap();
+    // match rpc_client.get_account(&program_id) {
+    //     Ok(account) => {
+    //         if account.executable {
+    //             println!("Program {} exists and is executable!", program_id);
+    //         } else {
+    //             println!("Account {} exists but is NOT executable", program_id);
+    //         }
+    //     }
+    //     Err(err) => {
+    //         println!("Program not found: {}", err);
+    //     }
+    // }
 
     //Create a channel
     let play_channel = PlayChannel::new(
@@ -132,11 +140,11 @@ fn test_rps() {
 
 pub fn program_account(program_id: Pubkey, program_path: &str) -> (Pubkey, AccountSharedData) {
     // Load compiled .so
-    let elf_bytes = fs::read(program_path).expect("read program binary");
+    let elf_bytes = read_file(Path::new(program_path));
 
     // Create an executable account owned by the loader
     let account = Account {
-        lamports: 1_000_000_000, // must have rent exemption
+        lamports: 1_000_000_000,
         data: elf_bytes,
         owner: solana_sdk::bpf_loader_upgradeable::id(), // or bpf_loader_upgradeable::id()
         executable: true,
@@ -144,4 +152,13 @@ pub fn program_account(program_id: Pubkey, program_path: &str) -> (Pubkey, Accou
     };
 
     (program_id, AccountSharedData::from(account))
+}
+
+pub fn read_file<P: AsRef<Path>>(path: P) -> Vec<u8> {
+    let path = path.as_ref();
+    let mut file = File::open(path).unwrap();
+
+    let mut file_data = Vec::new();
+    file.read_to_end(&mut file_data).unwrap();
+    file_data
 }
