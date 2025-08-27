@@ -48,22 +48,7 @@ pub(crate) fn create_transaction_batch_processor<CB: TransactionProcessingCallba
 
     {
         let mut cache = processor.program_cache.write().unwrap();
-        let sysvar_cache =  processor.sysvar_cache();
-        // sysvar_cache.get_clock().unwrap();
-        sysvar_cache.get_rent().expect("Failed at getting rent sysvar");
-        // sysvar_cache.get_last_restart_slot().unwrap();
-        // sysvar_cache.get_epoch_rewards().unwrap();
-        // sysvar_cache.get_epoch_schedule().unwrap();
-        // sysvar_cache.get_slot_hashes().unwrap();
-        // sysvar_cache.
-
-        // clock: Option<Vec<u8>>,
-        // epoch_schedule: Option<Vec<u8>>,
-        // epoch_rewards: Option<Vec<u8>>,
-        // rent: Option<Vec<u8>>,
-        // slot_hashes: Option<Vec<u8>>,
-        // stake_history: Option<Vec<u8>>,
-        // last_restart_slot:
+        processor.fill_missing_sysvar_cache_entries(callbacks);
 
         // Initialize the mocked fork graph.
         cache.fork_graph = Some(Arc::new(RwLock::new(PayTubeForkGraph {})));

@@ -63,11 +63,15 @@ impl From<&RpsTransaction> for SolanaInstruction {
 
         let discriminator2 = [44, 62, 102, 247, 126, 208, 130, 215];
         let mut ix_data = discriminator2.to_vec();
-        let player_two_data = borsh::to_vec(player_two).unwrap();
+        let player_two_data = borsh::to_vec(&player_two.unwrap()).unwrap();
         let game_id = borsh::to_vec(&2u64).unwrap();
+        // let game_id = &2u64.to_le_bytes()
         ix_data.extend_from_slice(&player_two_data);
         ix_data.extend_from_slice(&game_id);
 
+        // let raw_data = borsh::
+
+        print!("Game PDA: {}", game);
         SolanaInstruction {
             program_id: *program_id,
             accounts: vec![
