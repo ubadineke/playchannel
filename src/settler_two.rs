@@ -11,7 +11,7 @@
 //! channel is about to close are needed to create the settlement transaction.
 
 use {
-    crate::{transaction::PayTubeTransaction, transaction_two::RpsTransaction},
+    crate::transaction_two::RpsTransaction,
     solana_client::rpc_client::RpcClient,
     solana_sdk::{
         instruction::Instruction as SolanaInstruction, pubkey::Pubkey, signature::Keypair,
@@ -59,16 +59,6 @@ impl RPSLedger {
                 // successful.
                 println!("Result from transactions{:?}", result);
                 if result.was_executed_successfully() {
-                    //   let mint = transaction.mint;
-                    //   let mut keys = [transaction.from, transaction.to];
-                    //   keys.sort();
-                    //   let amount = if keys.iter().position(|k| k.eq(&transaction.from)).unwrap() == 0
-                    //   {
-                    //       transaction.amount as i128
-                    //   } else {
-                    //       -(transaction.amount as i128)
-                    //   };
-                    //   *ledger.entry(LedgerKey { mint, keys }).or_default() += amount;
 
                     println!("Yes")
                 } else {

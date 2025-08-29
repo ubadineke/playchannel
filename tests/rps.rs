@@ -1,13 +1,7 @@
 mod setup;
 
-use std::fs;
-
-use borsh::BorshSerialize;
-// use mollusk_svm::Mollusk;
 use paytube_svm::{
-    game_traits::GameMove,
-    games::{register_builtin_games, rock_paper_scissors::RPSChoice},
-    transaction_two::{Choice, RpsTransaction},
+transaction_two::{Choice, RpsTransaction},
     PlayChannel,
 };
 use setup::{system_account, TestValidatorContext};
@@ -51,27 +45,6 @@ fn test_rps() {
     let payer = context.payer.insecure_clone();
 
     let rpc_client = test_validator.get_rpc_client();
-    // let program_account = rpc_client.get_account(&program_id).unwrap();
-    // println!("Program owner: {}", program_account.owner);
-    // println!(
-    //     "Expected owner: {}",
-    //     solana_sdk::bpf_loader_upgradeable::id()
-    // );
-
-    // println!("Program account: {:?}", program_account);
-
-    // match rpc_client.get_account(&program_id) {
-    //     Ok(account) => {
-    //         if account.executable {
-    //             println!("Program {} exists and is executable!", program_id);
-    //         } else {
-    //             println!("Account {} exists but is NOT executable", program_id);
-    //         }
-    //     }
-    //     Err(err) => {
-    //         println!("Program not found: {}", err);
-    //     }
-    // }
 
     //Create a channel
     let play_channel = PlayChannel::new(
@@ -85,57 +58,34 @@ fn test_rps() {
     println!("{}", game_pda.0);
 
     play_channel.process_plays(&[
+        //Initialize Game Play
         RpsTransaction {
             game: game_pda.0,
             player: uba_pubkey,
             player_two: Some(clem_pubkey),
             choice: Choice::Paper,
             program_id,
+            first_tx: true
         },
-        //     RpsTransaction {
-        //     game: game_pda.0,
-        //     player: uba_pubkey,
-        //     choice: Choice::Paper,
-        //     program_id,
-        // },
-        // RpsTransaction {
-        //     game: game_pda.0,
-        //     player: uba_pubkey,
-        //     choice: Choice::Paper,
-        //     program_id,
-        // }
+        //Make first move
+        RpsTransaction {
+            game: game_pda.0,
+            player: uba_pubkey,
+            player_two: None,
+            choice: Choice::Paper,
+            program_id,
+            first_tx: false
+        },
+        //Make second move
+        RpsTransaction {
+            game: game_pda.0,
+            player: clem_pubkey,
+            player_two: None,
+            choice: Choice::Paper,
+            program_id,
+            first_tx: false
+        },
     ]);
-
-    assert!(false)
-    // register_builtin_games(play_channel.game_manager.get_mut_registry());
-
-    // let game_instance_id = play_channel
-    //     .create_game(
-    //         &"rock_paper_scissors".to_string(),
-    //         &[uba_pubkey, clem_pubkey],
-    //         0,
-    //         None,
-    //     )
-    //     .unwrap();
-
-    // let game_choice = RPSChoice::Paper.try_to_vec().unwrap();
-
-    // let uba_move = GameMove {
-    //     game_instance_id,
-    //     player_id: uba_pubkey,
-    //     move_id: 1,
-    //     move_data: game_choice.clone(),
-    //     signature: uba.sign_message(&game_choice),
-    //     timestamp: std::time::SystemTime::now()
-    //         .duration_since(std::time::UNIX_EPOCH)
-    //         .unwrap()
-    //         .as_secs(),
-    // };
-
-    // // let result = play_channel.process_game_move(&uba_move).unwrap();
-
-    // dbg!(game_instance_id);
-    // dbg!(result);No
 }
 
 pub fn program_account(program_id: Pubkey, program_path: &str) -> (Pubkey, AccountSharedData) {

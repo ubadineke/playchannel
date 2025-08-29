@@ -11,12 +11,11 @@ use {
     solana_sdk::{
         instruction::{AccountMeta, Instruction as SolanaInstruction},
         pubkey::Pubkey,
-        system_instruction, system_program,
+        system_program,
         transaction::{
             SanitizedTransaction as SolanaSanitizedTransaction, Transaction as SolanaTransaction,
         },
     },
-    spl_associated_token_account::get_associated_token_address,
     std::collections::HashSet,
 };
 
@@ -28,6 +27,7 @@ pub struct RpsTransaction {
     pub player_two: Option<Pubkey>,
     pub choice: Choice, // 0 = Rock, 1 = Paper, 2 = Scissors,
     pub program_id: Pubkey,
+    pub first_tx: bool
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
@@ -45,58 +45,53 @@ impl From<&RpsTransaction> for SolanaInstruction {
             player_two,
             choice,
             program_id,
+            first_tx 
         } = value;
 
-        // let discriminator: [u8; 8] = [207, 18, 251, 32, 135, 122, 160, 77];
-        // let mut ix_data = discriminator.to_vec();
-        // let choice_data = borsh::to_vec(choice).unwrap();
-        // ix_data.extend_from_slice(&choice_data);
-
-        // SolanaInstruction {
-        //     program_id: *program_id,
-        //     accounts: vec![
-        //         AccountMeta::new(*game, false),
-        //         AccountMeta::new(*player, true),
-        //     ],
-        //     data: ix_data,
-        // }
-
-        let discriminator2 = [44, 62, 102, 247, 126, 208, 130, 215];
-        let mut ix_data = discriminator2.to_vec();
-        let player_two_data = borsh::to_vec(&player_two.unwrap()).unwrap();
-        let game_id = borsh::to_vec(&2u64).unwrap();
-        // let game_id = &2u64.to_le_bytes()
-        ix_data.extend_from_slice(&player_two_data);
-        ix_data.extend_from_slice(&game_id);
-
-        // let raw_data = borsh::
-
-        print!("Game PDA: {}", game);
-        SolanaInstruction {
-            program_id: *program_id,
-            accounts: vec![
-                AccountMeta::new(*game, false),
-                AccountMeta::new(*player, true),
-                AccountMeta::new_readonly(system_program::ID, false),
-            ],
-            data: ix_data,
+        
+        if *first_tx{
+            // Setup initialize transaction
+            println!("True");
+            let discriminator2 = [44, 62, 102, 247, 126, 208, 130, 215];
+            let mut ix_data = discriminator2.to_vec();
+            // let player_two_data = borsh::to_vec(&player_two.unwrap()).unwrap();
+            let game_id = borsh::to_vec(&2u64).unwrap();
+            // let game_id = &2u64.to_le_bytes()
+            
+            if let Some(player) = player_two {
+                let player_two_data = borsh::to_vec(&player).unwrap();
+                ix_data.extend_from_slice(&player_two_data);
+            }
+            ix_data.extend_from_slice(&game_id);
+    
+            // let raw_data = borsh::
+    
+            print!("Game PDA: {}", game);
+            SolanaInstruction {
+                program_id: *program_id,
+                accounts: vec![
+                    AccountMeta::new(*game, false),
+                    AccountMeta::new(*player, true),
+                    AccountMeta::new_readonly(system_program::ID, false),
+                ],
+                data: ix_data,
+            }
+        }else{
+            // Execute move
+            let discriminator: [u8; 8] = [207, 18, 251, 32, 135, 122, 160, 77];
+            let mut ix_data = discriminator.to_vec();
+            let choice_data = borsh::to_vec(choice).unwrap();
+            ix_data.extend_from_slice(&choice_data);
+    
+            SolanaInstruction {
+                program_id: *program_id,
+                accounts: vec![
+                    AccountMeta::new(*game, false),
+                    AccountMeta::new(*player, true),
+                ],
+                data: ix_data,
+            }
         }
-
-        // system_instruction::transfer(player, &player_two.unwrap(), 200000)
-        // if let Some(mint) = mint {
-        //     let source_pubkey = get_associated_token_address(from, mint);
-        //     let destination_pubkey = get_associated_token_address(to, mint);
-        //     return spl_token::instruction::transfer(
-        //         &spl_token::id(),
-        //         &source_pubkey,
-        //         &destination_pubkey,
-        //         from,
-        //         &[],
-        //         *amount,
-        //     )
-        //     .unwrap();
-        // }
-        // system_instruction::transfer(from, to, *amount)
     }
 }
 
