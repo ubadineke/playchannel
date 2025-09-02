@@ -57,7 +57,7 @@ impl RPSLedger {
             .for_each(|(transaction, result)| {
                 // Only append to the ledger if the PayTube transaction was
                 // successful.
-                println!("Result from transactions{:?}", result);
+                // println!("Result from transactions{:?}", result);
                 if result.was_executed_successfully() {
 
                     println!("Yes")

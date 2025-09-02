@@ -77,6 +77,8 @@ impl From<&RpsTransaction> for SolanaInstruction {
                 data: ix_data,
             }
         }else{
+            // println!("False");
+            // println!("Second Game PDA: {}", game);
             // Execute move
             let discriminator: [u8; 8] = [207, 18, 251, 32, 135, 122, 160, 77];
             let mut ix_data = discriminator.to_vec();

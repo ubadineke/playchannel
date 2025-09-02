@@ -39,12 +39,13 @@ impl<'a> PayTubeAccountLoader<'a> {
 impl TransactionProcessingCallback for PayTubeAccountLoader<'_> {
     fn get_account_shared_data(&self, pubkey: &Pubkey) -> Option<AccountSharedData> {
         if let Some(account) = self.cache.read().unwrap().get(pubkey) {
+            println!("Coming from the cache: {}", pubkey);
             return Some(account.clone());
         }
 
         let account: AccountSharedData = self.rpc_client.get_account(pubkey).ok()?.into();
         self.cache.write().unwrap().insert(*pubkey, account.clone());
-
+        println!("Fetched direct from the main chain: {}", pubkey);
         Some(account)
     }
 

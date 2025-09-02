@@ -22,6 +22,8 @@ fn test_rps() {
 
     let uba_pubkey = uba.pubkey();
     let clem_pubkey = clem.pubkey();
+    println!("Uba Public key: {}", uba_pubkey);
+    println!("Clem Public Key:{}", clem_pubkey);
 
     let program_id: Pubkey = "B6iwgaDVFX7LXDMokCYT8Ya21gr2FbsUTBPFh2mcfxNa"
         .parse()

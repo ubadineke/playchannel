@@ -229,7 +229,7 @@ impl PlayChannel {
             &processing_config,
         );
 
-        // println!("{:?}", results.loaded_transactions);
+        // println!("{:?}", results.loaded_transactions.len());
         // 3. Convert results into a final ledger using a `PayTubeSettler`.
         let settler = PlayChannelSettler::new(&self.rpc_client);
 
